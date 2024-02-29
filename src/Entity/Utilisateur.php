@@ -3,57 +3,96 @@
 namespace App\Entity;
 
 use App\Repository\UtilisateurRepository;
-use Doctrine\Common\Collections\ArrayCollection;
-use Doctrine\Common\Collections\Collection;
-use Doctrine\DBAL\Types\Types;
 use Doctrine\ORM\Mapping as ORM;
+use Symfony\Bridge\Doctrine\Validator\Constraints\UniqueEntity;
+use Symfony\Component\Security\Core\User\PasswordAuthenticatedUserInterface;
+use Symfony\Component\Security\Core\User\UserInterface;
 
 #[ORM\Entity(repositoryClass: UtilisateurRepository::class)]
-class Utilisateur
+#[UniqueEntity(fields: ['email'], message: 'There is already an account with this email')]
+class Utilisateur implements UserInterface, PasswordAuthenticatedUserInterface
 {
     #[ORM\Id]
     #[ORM\GeneratedValue]
     #[ORM\Column]
     private ?int $id = null;
 
-    #[ORM\Column(length: 100)]
-    private ?string $mail = null;
+    #[ORM\Column(length: 180, unique: true)]
+    private ?string $email = null;
 
-    #[ORM\Column(type: Types::TEXT)]
+    /**
+     * @var list<string> The user roles
+     */
+    #[ORM\Column(options: ["default"=> '["ROLE_USER"]'])]
+    private array $roles = [];
+
+    /**
+     * @var string The hashed password
+     */
+    #[ORM\Column]
     private ?string $password = null;
 
-    #[ORM\Column]
-    private array $coordonnée = [];
-
-    #[ORM\Column(nullable: true)]
-    private ?array $horaire = null;
-
-    #[ORM\OneToMany(targetEntity: Commande::class, mappedBy: 'id_utilisateur')]
-    private Collection $commandes;
-
-    public function __construct()
-    {
-        $this->commandes = new ArrayCollection();
-    }
+    #[ORM\Column(type: 'boolean')]
+    private $isVerified = false;
 
     public function getId(): ?int
     {
         return $this->id;
     }
 
-    public function getMail(): ?string
+    public function getEmail(): ?string
     {
-        return $this->mail;
+        return $this->email;
     }
 
-    public function setMail(string $mail): static
+    public function setEmail(string $email): static
     {
-        $this->mail = $mail;
+        $this->email = $email;
 
         return $this;
     }
 
-    public function getPassword(): ?string
+    /**
+     * A visual identifier that represents this user.
+     *
+     * @see UserInterface
+     */
+    public function getUserIdentifier(): string
+    {
+        return (string) $this->email;
+    }
+
+    /**
+     * @see UserInterface
+     *
+     * @return list<string>
+     */
+    public function getRoles(): array
+    {
+        $roles = $this->roles;
+        // guarantee every user at least has ROLE_USER
+        $roles[] = 'ROLE_USER';
+
+        return array_unique($roles);
+    }
+
+    /**
+     * @param list<string> $roles
+     */
+    public function setRoles(array $roles): static
+    {
+        if(empty($roles)) {
+            $this->roles = ['ROLE_USER'];
+        } else {
+            $this->roles = $roles;
+        }
+        return $this;
+    }
+
+    /**
+     * @see PasswordAuthenticatedUserInterface
+     */
+    public function getPassword(): string
     {
         return $this->password;
     }
@@ -65,56 +104,23 @@ class Utilisateur
         return $this;
     }
 
-    public function getCoordonnée(): array
-    {
-        return $this->coordonnée;
-    }
-
-    public function setCoordonnée(array $coordonnée): static
-    {
-        $this->coordonnée = $coordonnée;
-
-        return $this;
-    }
-
-    public function getHoraire(): ?array
-    {
-        return $this->horaire;
-    }
-
-    public function setHoraire(?array $horaire): static
-    {
-        $this->horaire = $horaire;
-
-        return $this;
-    }
-
     /**
-     * @return Collection<int, Commande>
+     * @see UserInterface
      */
-    public function getCommandes(): Collection
+    public function eraseCredentials(): void
     {
-        return $this->commandes;
+        // If you store any temporary, sensitive data on the user, clear it here
+        // $this->plainPassword = null;
     }
 
-    public function addCommande(Commande $commande): static
+    public function isVerified(): bool
     {
-        if (!$this->commandes->contains($commande)) {
-            $this->commandes->add($commande);
-            $commande->setIdUtilisateur($this);
-        }
-
-        return $this;
+        return $this->isVerified;
     }
 
-    public function removeCommande(Commande $commande): static
+    public function setIsVerified(bool $isVerified): static
     {
-        if ($this->commandes->removeElement($commande)) {
-            // set the owning side to null (unless already changed)
-            if ($commande->getIdUtilisateur() === $this) {
-                $commande->setIdUtilisateur(null);
-            }
-        }
+        $this->isVerified = $isVerified;
 
         return $this;
     }
