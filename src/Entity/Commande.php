@@ -21,10 +21,6 @@ class Commande
     #[ORM\ManyToMany(targetEntity: Plat::class, inversedBy: 'commandes')]
     private Collection $id_plat;
 
-    #[ORM\ManyToOne(inversedBy: 'commandes')]
-    #[ORM\JoinColumn(nullable: false)]
-    private ?Utilisateur $id_utilisateur = null;
-
     #[ORM\Column]
     private ?\DateTimeImmutable $created_at = null;
 
@@ -33,6 +29,10 @@ class Commande
 
     #[ORM\Column(type: Types::TEXT, nullable: true)]
     private ?string $annulation_description = null;
+
+    #[ORM\ManyToOne(inversedBy: 'commandes')]
+    #[ORM\JoinColumn(nullable: false)]
+    private ?Utilisateur $user = null;
 
     public function __construct()
     {
@@ -64,18 +64,6 @@ class Commande
     public function removeIdPlat(Plat $idPlat): static
     {
         $this->id_plat->removeElement($idPlat);
-
-        return $this;
-    }
-
-    public function getIdUtilisateur(): ?Utilisateur
-    {
-        return $this->id_utilisateur;
-    }
-
-    public function setIdUtilisateur(?Utilisateur $id_utilisateur): static
-    {
-        $this->id_utilisateur = $id_utilisateur;
 
         return $this;
     }
@@ -119,5 +107,17 @@ class Commande
     public function __toString()
     {
         return $this->created_at->format('Y-m-d');
+    }
+
+    public function getUser(): ?Utilisateur
+    {
+        return $this->user;
+    }
+
+    public function setUser(?Utilisateur $user): static
+    {
+        $this->user = $user;
+
+        return $this;
     }
 }

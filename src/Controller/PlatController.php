@@ -33,7 +33,7 @@ class PlatController extends AbstractController
         return $this->json($data);
     }
 
-    #[Route('/plat', name: 'plat_create', methods:['POST'])]
+    #[Route('/plat/new', name: 'plat_create', methods:['POST'])]
     public function create(EntityManagerInterface $entityManager, Request $request): JsonResponse
     {
         $plat = new Plat();
@@ -52,7 +52,7 @@ class PlatController extends AbstractController
         return $this->json($data);
     }
 
-    #[Route('/plat/{id}', name: 'plat_show', methods:['GET'])]
+    #[Route('/plat/show/{id}', name: 'plat_show', methods:['GET'])]
     public function show(EntityManagerInterface $entityManager, int $id): JsonResponse
     {
         $plat = $entityManager->getRepository(Plat::class)->find($id);
@@ -70,7 +70,7 @@ class PlatController extends AbstractController
         return $this->json($data);
     }
 
-    #[Route('/plat/{id}', name:'plat_update', methods:['PUT', 'PATCH'])]
+    #[Route('/plat/update/{id}', name:'plat_update', methods:['PUT', 'PATCH'])]
     public function update(EntityManagerInterface $entityManager, int $id, Request $request): JsonResponse
     {
         $plat = $entityManager->getRepository(Plat::class)->find($id);
